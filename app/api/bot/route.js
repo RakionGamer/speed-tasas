@@ -14,13 +14,16 @@ import { createImageWithRatesCountrysVenezuela } from "../../../lib/processorCou
 export async function POST(req) {
   try {
     const update = await req.json();
+
     const chatId =
       update.message?.chat?.id || update.callback_query?.message?.chat?.id;
     const text = (update.message?.text || "").trim();
     const callbackData = update.callback_query?.data;
+
     if (update.callback_query) {
       await bot.answerCallbackQuery(update.callback_query.id);
     }
+
     if (text) {
       await bot.sendMessage(chatId, "👋 ¡Bienvenido! Selecciona una opción:", {
         reply_markup: {
@@ -37,12 +40,20 @@ export async function POST(req) {
 
       return new Response("ok", { status: 200 });
     }
+
     if (callbackData === "update_all") {
       const processingMsg = await bot.sendMessage(chatId, "⏳ Procesando imágenes... Esto puede durar máximo 1 minuto");
       const rates = await getRates();
+
       const ecuadorRates = rates["DESDE ECUADOR"];
       const mexicoRates = rates["DESDE MEXICO"];
+
+
+
       const venezuelaRates = rates["DESDE VENEZUELA"];
+
+
+
       const peruRates = rates["DESDE PERU"];
       const chileRates = rates["DESDE CHILE"];
       const argentinaRates = rates["DESDE ARGENTINA"];
@@ -137,11 +148,7 @@ export async function POST(req) {
         const img = images[i];
         const isLast = i === images.length - 1;
 
-        await bot.sendPhoto(chatId, {
-          source: img.buffer,
-          filename: `tasas_${i + 1}.png`,
-          contentType: "image/png"
-        }, {
+        await bot.sendPhoto(chatId, img.buffer, {
           caption: img.caption,
           reply_markup: isLast
             ? {
@@ -158,7 +165,6 @@ export async function POST(req) {
         });
       }
 
-
       return new Response("ok", { status: 200 });
     }
 
@@ -170,12 +176,12 @@ export async function POST(req) {
 }
 
 export async function GET() {
-  const rates = await getRates();
   return new Response(
-    JSON.stringify({ message: "API Bot funcionando ✅", rates }),
+    JSON.stringify({ message: "API Bot funcionando ✅" }),
     {
       status: 200,
       headers: { "Content-Type": "application/json" },
     }
   );
 }
+
