@@ -42,7 +42,6 @@ export async function POST(req) {
 
       const imageBuffer = await createImageWithRatesEcuador(ecuadorRates);
       await bot.sendPhoto(chatId, imageBuffer, {
-        caption: "📊 Tasas de Ecuador",
         reply_markup: {
           inline_keyboard: [
             [
@@ -74,5 +73,6 @@ export async function GET() {
     }
   );
 }
+
 
 
