@@ -8,6 +8,8 @@ import { createImageWithRatesChile } from "../../../lib/processorChile";
 import { createImageWithRatesArgentina } from "../../../lib/processorArgentina";
 import { createImageWithRatesBrasil } from "../../../lib/processorBrasil";
 import { createImageWithRatesColombia } from "../../../lib/processorColombia";
+import { createImageWithRatesCountrysVenezuela } from "../../../lib/processorCountrysVenezuela";
+
 
 export async function POST(req) {
   try {
@@ -28,7 +30,7 @@ export async function POST(req) {
           inline_keyboard: [
             [
               {
-                text: "Ver tasas",
+                text: "Ver todas las tasas",
                 callback_data: "update_all",
               },
             ],
@@ -40,18 +42,54 @@ export async function POST(req) {
     }
 
     if (callbackData === "update_all") {
-      const processingMsg = await bot.sendMessage(chatId, "⏳ Procesando imágenes...");
+      const processingMsg = await bot.sendMessage(chatId, "⏳ Procesando imágenes... Esto puede durar máximo 1 minuto");
       const rates = await getRates();
 
       const ecuadorRates = rates["DESDE ECUADOR"];
       const mexicoRates = rates["DESDE MEXICO"];
+
+
+
       const venezuelaRates = rates["DESDE VENEZUELA"];
+
+
+
       const peruRates = rates["DESDE PERU"];
       const chileRates = rates["DESDE CHILE"];
       const argentinaRates = rates["DESDE ARGENTINA"];
       const brasilRates = rates["DESDE BRASIL"];
       const colombiaRates = rates["DESDE COLOMBIA"];
 
+      const paisesAVenezuela = {
+        "CHILE": {
+          "VENEZUELA": chileRates["VENEZUELA"],
+          "PM": chileRates["PM"]
+        },
+        "ARGENTINA": {
+          "VENEZUELA": argentinaRates["VENEZUELA"],
+          "PM": argentinaRates["PM"]
+        },
+        "ECUADOR": {
+          "VENEZUELA": ecuadorRates["VENEZUELA"],
+          "PM": ecuadorRates["PM"]
+        },
+        "COLOMBIA": {
+          "VENEZUELA": colombiaRates["VENEZUELA"],
+          "PM": colombiaRates["PM"]
+        },
+        "PERU": {
+          "VENEZUELA": peruRates["VENEZUELA"],
+          "PM": peruRates["PM"]
+        },
+        "MEXICO": {
+          "VENEZUELA": mexicoRates["VENEZUELA"],
+          "PM": mexicoRates["PM"]
+        },
+        "BRASIL": {
+          "VENEZUELA": brasilRates["VENEZUELA"],
+          "PM": brasilRates["PM"]
+        }
+      }
       if (
         !ecuadorRates &&
         !mexicoRates &&
@@ -62,31 +100,32 @@ export async function POST(req) {
         !brasilRates &&
         !colombiaRates
       ) {
-        await bot.editMessageText("❌ No encontré tasas", {
+        await bot.editMessageText("No encontré tasas", {
           chat_id: chatId,
           message_id: processingMsg.message_id,
         });
         return new Response("ok", { status: 200 });
       }
 
-      await bot.deleteMessage(chatId, processingMsg.message_id);
       const images = [];
+      const countrysVenezuela = await createImageWithRatesCountrysVenezuela(paisesAVenezuela);
+      images.push({ buffer: countrysVenezuela });
 
       if (chileRates) {
         const chileImg = await createImageWithRatesChile(chileRates);
-        images.push({ buffer: chileImg, caption: "📊 Tasas de Chile" });
+        images.push({ buffer: chileImg });
       }
       if (venezuelaRates) {
         const venezuelaImg = await createImageWithRatesVenezuela(venezuelaRates);
-        images.push({ buffer: venezuelaImg, caption: "📊 Tasas de Venezuela" });
+        images.push({ buffer: venezuelaImg });
       }
       if (brasilRates) {
         const brasilImg = await createImageWithRatesBrasil(brasilRates);
-        images.push({ buffer: brasilImg, caption: "📊 Tasas de Brasil" });
+        images.push({ buffer: brasilImg });
       }
       if (argentinaRates) {
         const argentinaImg = await createImageWithRatesArgentina(argentinaRates);
-        images.push({ buffer: argentinaImg});
+        images.push({ buffer: argentinaImg });
       }
       if (peruRates) {
         const peruImg = await createImageWithRatesPeru(peruRates);
@@ -98,14 +137,13 @@ export async function POST(req) {
       }
       if (mexicoRates) {
         const mexicoImg = await createImageWithRatesMexico(mexicoRates);
-        images.push({ buffer: mexicoImg});
+        images.push({ buffer: mexicoImg });
       }
       if (ecuadorRates) {
         const ecuadorImg = await createImageWithRatesEcuador(ecuadorRates);
-        images.push({ buffer: ecuadorImg});
+        images.push({ buffer: ecuadorImg });
       }
 
-      // 👉 Enviar imágenes en orden
       for (let i = 0; i < images.length; i++) {
         const img = images[i];
         const isLast = i === images.length - 1;
@@ -114,17 +152,18 @@ export async function POST(req) {
           caption: img.caption,
           reply_markup: isLast
             ? {
-                inline_keyboard: [
-                  [
-                    {
-                      text: "🔄 Actualizar tasas",
-                      callback_data: "update_all",
-                    },
-                  ],
+              inline_keyboard: [
+                [
+                  {
+                    text: "🔄 Actualizar tasas",
+                    callback_data: "update_all",
+                  },
                 ],
-              }
+              ],
+            }
             : undefined,
         });
+        await new Promise(r => setTimeout(r, 500)); 
       }
 
       return new Response("ok", { status: 200 });
