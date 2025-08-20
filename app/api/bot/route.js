@@ -163,7 +163,6 @@ export async function POST(req) {
             }
             : undefined,
         });
-        await new Promise(r => setTimeout(r, 500)); 
       }
 
       return new Response("ok", { status: 200 });
@@ -185,3 +184,4 @@ export async function GET() {
     }
   );
 }
+
