@@ -41,7 +41,6 @@ export async function POST(req) {
       }
 
       const imageBuffer = await createImageWithRatesEcuador(ecuadorRates);
-      await bot.deleteMessage(chatId, processingMsg.message_id);
       await bot.sendPhoto(chatId, imageBuffer, {
         caption: "📊 Tasas de Ecuador",
         reply_markup: {
@@ -75,4 +74,5 @@ export async function GET() {
     }
   );
 }
+
 
