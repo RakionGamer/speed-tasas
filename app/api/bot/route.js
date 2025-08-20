@@ -11,7 +11,7 @@ export async function POST(req) {
     const text = (update.message?.text || "").trim();
     const callbackData = update.callback_query?.data;
 
-    if (text === "/start") {
+    if (text) {
       await bot.sendMessage(chatId, "👋 ¡Bienvenido! Selecciona una opción:", {
         reply_markup: {
           inline_keyboard: [
@@ -75,3 +75,4 @@ export async function GET() {
     }
   );
 }
+
